@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nids"
+version = "0.1.0"
+description = "Machine Learning-Based Network Intrusion Detection System (CIC-IDS2017, binary BENIGN/ATTACK)"
+requires-python = ">=3.11"
+# Dependencies are managed in requirements.txt to keep a single source of truth.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

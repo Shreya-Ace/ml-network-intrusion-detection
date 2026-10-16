@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Dataset (large; supplied separately - never commit)
+data/raw/*
+data/processed/*
+data/interim/*
+
+# Generated model binaries
+models/*
+
+# Generated results (re-creatable by running the pipeline)
+results/metrics/*
+results/figures/*
+results/logs/*
+
+# Keep empty directories in Git
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/interim/.gitkeep
+!models/.gitkeep
+!results/metrics/.gitkeep
+!results/figures/.gitkeep
+!results/logs/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

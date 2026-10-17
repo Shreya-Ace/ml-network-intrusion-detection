@@ -56,9 +56,29 @@ ATTACK_FAMILY_COLUMN: str = "attack_family"  # canonical family (see LABEL_ALIAS
 IS_ATTACK_COLUMN: str = "is_attack"
 METADATA_COLUMNS: tuple[str, ...] = (SOURCE_FILE_COLUMN, ORIGINAL_LABEL_COLUMN)
 
-# The exact origin of this Parquet variant is not established. Do not describe the
-# data as an exact reproduction of the report's preparation until it is.
-DATASET_PROVENANCE: str = "unknown (download source not established)"
+# Provenance is a PROBABLE match only. The project owner reported an exact filename match
+# with Version 3 of the Kaggle dataset "dhoogla/cicids2017"; the implementation could not
+# independently retrieve that page, and the local download history is unconfirmed. Do not
+# describe the data as identical to the CSV input used by the report, or claim the report's
+# experiment used this variant, unless that is established.
+DATASET_PROVENANCE: str = (
+    "probable match, NOT verified: Kaggle 'dhoogla/cicids2017' Version 3 "
+    "(filename match reported by the project owner; download history unconfirmed)"
+)
+DATASET_PROVENANCE_DETAIL: dict[str, str] = {
+    "status": "probable_match_unverified",
+    "probable_source": "Kaggle dataset 'dhoogla/cicids2017'",
+    "probable_version": "Version 3 (as reported by the project owner)",
+    "basis": "exact filename match found by the project owner; not independently verified",
+    "schema_note": (
+        "Files contain 77 numerical feature columns plus 'Label' (no IP, port or timestamp "
+        "columns). The report implies a different final feature count (70); whether the report "
+        "used this schema is not established."
+    ),
+    "caution": (
+        "Not established as identical to the original CSV files or to the report's input data."
+    ),
+}
 
 # --- Label registry ----------------------------------------------------------
 # canonical family -> raw spellings observed in the Parquet files (verified by the
@@ -92,5 +112,9 @@ N_BENIGN_SAMPLES: int = 60_000
 N_ATTACK_SAMPLES: int = 40_000
 TEST_SIZE: float = 0.20  # 80:20 stratified split
 REPORTED_FEATURE_COUNT: int = 70  # Verified against real preprocessing in Milestone 3.
+
+# Families with fewer test records than this are flagged as insufficient for
+# family-specific conclusions (a rule-of-thumb threshold, not a statistical guarantee).
+MIN_FAMILY_TEST_RECORDS: int = 30
 
 # Model hyperparameters are added in Milestone 4, where they are used.

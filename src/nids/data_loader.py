@@ -135,6 +135,22 @@ def resolve_labels(raw: pd.Series) -> LabelResolution:
     return LabelResolution(family_ids, raw_counts, mapping, n_null)
 
 
+def raise_if_unknown(resolution: LabelResolution, context: str = "") -> None:
+    """Raise UnknownLabelError if any label is null or unrecognised."""
+    if not (resolution.unknown or resolution.n_null):
+        return
+    lines = [f"  {ascii(v)}: {n:,} row(s)" for v, n in sorted(resolution.unknown.items())]
+    if resolution.n_null:
+        lines.append(f"  <null>: {resolution.n_null:,} row(s)")
+    where = f" in {context}" if context else ""
+    raise UnknownLabelError(
+        f"Unrecognised or missing label value(s){where}:\n"
+        + "\n".join(lines)
+        + "\nIf a value is a legitimate spelling of a known family, add it to "
+        "config.LABEL_ALIASES explicitly; otherwise fix the data."
+    )
+
+
 def canonicalise_labels(raw: pd.Series) -> pd.DataFrame:
     """Return ``attack_family`` and ``is_attack`` for each row (index preserved).
 
@@ -142,16 +158,7 @@ def canonicalise_labels(raw: pd.Series) -> pd.DataFrame:
     treated as ATTACK.
     """
     resolution = resolve_labels(raw)
-    if resolution.unknown or resolution.n_null:
-        lines = [f"  {ascii(v)}: {n:,} row(s)" for v, n in sorted(resolution.unknown.items())]
-        if resolution.n_null:
-            lines.append(f"  <null>: {resolution.n_null:,} row(s)")
-        raise UnknownLabelError(
-            "Unrecognised or missing label value(s):\n"
-            + "\n".join(lines)
-            + "\nIf a value is a legitimate spelling of a known family, add it to "
-            "config.LABEL_ALIASES explicitly; otherwise fix the data."
-        )
+    raise_if_unknown(resolution)
     names = np.array(FAMILY_NAMES, dtype=object)[resolution.family_ids]
     return pd.DataFrame(
         {

@@ -380,7 +380,7 @@ def test_audit_dataset_end_to_end_matches_in_memory_scenario(tmp_path):
     check_scenario_audit(audit)
     assert audit["schema"]["n_feature_columns"] == 4
     assert {"f2", "f3", "const"} <= set(audit["schema"]["type_only_differences"])
-    assert audit["dataset"]["provenance"].startswith("unknown")
+    assert "NOT verified" in audit["dataset"]["provenance"]
     json.dumps(audit)
     assert dl.format_report(audit).isascii()
 

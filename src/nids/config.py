@@ -117,4 +117,19 @@ REPORTED_FEATURE_COUNT: int = 70  # Verified against real preprocessing in Miles
 # family-specific conclusions (a rule-of-thumb threshold, not a statistical guarantee).
 MIN_FAMILY_TEST_RECORDS: int = 30
 
-# Model hyperparameters are added in Milestone 4, where they are used.
+# --- Models (Milestone 4) ------------------------------------------------------------
+MODEL_NAMES: tuple[str, ...] = ("logistic_regression", "decision_tree", "random_forest", "svm")
+# Trained by default. The RBF SVM is expensive, so it is never trained unless requested.
+INITIAL_MODELS: tuple[str, ...] = ("logistic_regression", "decision_tree", "random_forest")
+
+# Classifier settings taken from the report (the INTENDED configuration). train.py maps them
+# to the installed scikit-learn's parameter names (e.g. 'penalty' is deprecated in 1.8+) and
+# records the settings actually used in each model's metadata.
+# random_state=42 is the project seed; the report itself only specifies it for Random Forest.
+# Note: it has no effect for Logistic Regression with 'lbfgs' or for SVC with probability=False.
+MODEL_SETTINGS: dict[str, dict] = {
+    "logistic_regression": {"penalty": "l2", "C": 1.0, "solver": "lbfgs", "max_iter": 1000, "random_state": RANDOM_SEED},
+    "decision_tree": {"criterion": "gini", "max_depth": 20, "random_state": RANDOM_SEED},
+    "random_forest": {"n_estimators": 100, "criterion": "gini", "random_state": RANDOM_SEED},
+    "svm": {"kernel": "rbf", "C": 1.0, "gamma": "scale", "probability": False, "random_state": RANDOM_SEED},
+}

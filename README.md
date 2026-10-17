@@ -3,10 +3,9 @@
 Binary classification (**BENIGN** vs **ATTACK**) of network-flow records from the
 CIC-IDS2017 dataset, using Logistic Regression, Decision Tree, Random Forest and SVM.
 
-> **Status: Milestone 3 (data preparation).** Parquet loader, data audit, and the
-> preparation pipeline (exclusions, global deduplication, sampling, split, feature schema)
-> exist. There is no model training, evaluation or dashboard yet. Counts and reports are
-> only valid for the files you supply.
+> **Status: Milestone 4 (model training).** Parquet loader, data audit, the preparation
+> pipeline and model training exist. There is no evaluation or dashboard yet, and no test-set
+> metric has been computed. Counts and reports are only valid for the files you supply.
 
 ## Scope
 
@@ -115,10 +114,41 @@ Limitations: a random split over data whose attack families are aligned with cap
 evidence of generalisation to unseen networks; family-specific metrics are unreliable where the test
 set has few records (flagged in the report); the 60/40 class ratio is a design choice, not real traffic.
 
+## Model training (Milestone 4)
+
+Trains on the **training split only**; the test split is never loaded and no metrics are computed
+(evaluation is Milestone 5).
+
+```bash
+python -m nids.train --models logistic_regression decision_tree random_forest   # fast models
+python -m nids.train --models svm                                               # separate, slow invocation
+python -m nids.train                          # no --models: the three fast models only; never SVM
+```
+
+Valid model names: `logistic_regression`, `decision_tree`, `random_forest`, `svm`. Unknown names are
+rejected with the valid list. SVM is never trained unless named.
+
+Each model is a complete scikit-learn Pipeline:
+`constant-feature selector -> [StandardScaler for logistic_regression and svm] -> classifier`.
+It accepts the original input features (in schema order); the selector (fitted on training data only)
+may retain fewer. Settings (from the report): Logistic Regression `C=1.0`, L2, `max_iter=1000`,
+solver `lbfgs`; Decision Tree gini, `max_depth=20`; Random Forest 100 trees, gini; SVM RBF, `C=1.0`,
+`gamma="scale"`, `probability=False`. `random_state=42` everywhere it is accepted - but it has **no
+effect** for Logistic Regression with `lbfgs` or for SVC with `probability=False` (recorded in the
+metadata). In scikit-learn >= 1.8 `penalty` is deprecated; L2 is expressed as `l1_ratio=0.0`
+(numerically identical). With `probability=False` the SVM exposes a decision *score*, not a probability.
+
+Outputs (git-ignored): `models/<name>.joblib` and `models/<name>.json` (hyperparameters, fitted
+facts, input/retained feature names, training counts, label mapping, versions, training-file SHA-256,
+fit time, warnings, save-and-reload result). A model is written as `.partial`, reloaded and compared
+with the in-memory model on a fixed slice of the training data, and only then moved into place; the
+JSON (which holds the model file's SHA-256) is moved last, so an interrupted run leaves no completed
+artefact. No unit test trains a full-size model.
+
 ## Project layout
 
 ```
-src/nids/       config, data_loader (M2), preprocessing (M3), train, evaluate, predict, utils
+src/nids/       config, data_loader (M2), preprocessing (M3), train (M4), evaluate, predict, utils
 tests/          pytest suite (synthetic data only)
 data/           raw/ interim/ processed/   (contents not committed)
 models/         trained model artifacts     (not committed)

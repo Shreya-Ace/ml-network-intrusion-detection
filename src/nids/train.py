@@ -172,25 +172,27 @@ def validate_training_inputs(
     meta: pd.DataFrame,
     original_features: Sequence[str],
     dataset_meta: dict | None = None,
+    split: str = "train",
 ) -> dict[str, int]:
-    """Explicit checks on the training data; returns class counts keyed by label name."""
+    """Explicit checks on a prepared split (default: training); returns class counts by label name."""
+    label = "training" if split == "train" else split
     expected = list(original_features)
     if len(X) == 0:
-        raise TrainingDataError("The training split is empty.")
+        raise TrainingDataError(f"The {label} split is empty.")
     if list(X.columns) != expected:
         missing = [c for c in expected if c not in X.columns]
         extra = [c for c in X.columns if c not in expected]
         raise TrainingDataError(
-            f"Training columns do not match the feature schema (missing {missing}, unexpected {extra}; "
+            f"{label.capitalize()} columns do not match the feature schema (missing {missing}, unexpected {extra}; "
             "names and order must be identical)."
         )
     try:
         values = X.to_numpy(dtype="float64")
     except (ValueError, TypeError) as exc:
-        raise TrainingDataError(f"Training features are not all numeric: {exc}") from exc
+        raise TrainingDataError(f"{label.capitalize()} features are not all numeric: {exc}") from exc
     if not np.isfinite(values).all():
         raise TrainingDataError(
-            f"Training features contain {int((~np.isfinite(values)).sum()):,} NaN/inf value(s); "
+            f"{label.capitalize()} features contain {int((~np.isfinite(values)).sum()):,} NaN/inf value(s); "
             "invalid rows should have been removed by preprocessing."
         )
     if y.isna().any():
@@ -210,10 +212,10 @@ def validate_training_inputs(
                 f"{int((~consistent).sum()):,} row(s) have a target that disagrees with their attack family."
             )
     if dataset_meta is not None:
-        recorded = dataset_meta.get("split", {}).get("train", {})
+        recorded = dataset_meta.get("split", {}).get(split, {})
         if (recorded.get("rows"), recorded.get("benign"), recorded.get("attack")) != (len(X), n_benign, n_attack):
             raise TrainingDataError(
-                f"train.parquet ({len(X):,} rows, {n_benign:,} benign, {n_attack:,} attack) does not match "
+                f"{split}.parquet ({len(X):,} rows, {n_benign:,} benign, {n_attack:,} attack) does not match "
                 f"dataset_metadata.json ({recorded}). Re-run: python -m nids.preprocessing"
             )
     return {config.BENIGN_LABEL: n_benign, config.ATTACK_LABEL: n_attack}

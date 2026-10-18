@@ -133,3 +133,24 @@ MODEL_SETTINGS: dict[str, dict] = {
     "random_forest": {"n_estimators": 100, "criterion": "gini", "random_state": RANDOM_SEED},
     "svm": {"kernel": "rbf", "C": 1.0, "gamma": "scale", "probability": False, "random_state": RANDOM_SEED},
 }
+
+# --- Report claims (Milestone 5) ---------------------------------------------------------
+# Values TRANSCRIBED from the training report: Table 5 (performance comparison) and
+# Section 5.1 / Figure 10 (Random Forest confusion matrix). They are reference claims to
+# compare against, NOT results of this implementation, and are never used to compute or
+# adjust any metric. The report gives no ROC-AUC and no per-attack-family results.
+REPORT_CLAIMS: dict = {
+    "source": "Industrial training report: Table 5; Section 5.1 and Figure 10 (Random Forest confusion matrix)",
+    "note": "Transcribed claims, not results of this implementation. Percentages in the report have two decimals.",
+    "test_records": 20_000,
+    "test_attack_records": 8_000,
+    "test_benign_records": 12_000,
+    "models": {
+        "logistic_regression": {"accuracy": 0.9600, "precision": 0.9478, "recall": 0.9525, "f1": 0.9501},
+        "decision_tree": {"accuracy": 0.9810, "precision": 0.9774, "recall": 0.9750, "f1": 0.9762},
+        "random_forest": {"accuracy": 0.9900, "precision": 0.9875, "recall": 0.9875, "f1": 0.9875},
+        "svm": {"accuracy": 0.9770, "precision": 0.9631, "recall": 0.9800, "f1": 0.9715},
+    },
+    "random_forest_confusion": {"tn": 11_900, "fp": 100, "fn": 100, "tp": 7_900},
+    "random_forest_false_positive_rate_stated": 0.0083,  # "about 0.83%" in the report text
+}

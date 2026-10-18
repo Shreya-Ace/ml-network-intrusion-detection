@@ -3,9 +3,9 @@
 Binary classification (**BENIGN** vs **ATTACK**) of network-flow records from the
 CIC-IDS2017 dataset, using Logistic Regression, Decision Tree, Random Forest and SVM.
 
-> **Status: Milestone 4 (model training).** Parquet loader, data audit, the preparation
-> pipeline and model training exist. There is no evaluation or dashboard yet, and no test-set
-> metric has been computed. Counts and reports are only valid for the files you supply.
+> **Status: Milestone 5 (evaluation).** Parquet loader, data audit, preparation pipeline, model
+> training and evaluation code exist. There is no prediction CLI or dashboard yet. Counts, metrics
+> and reports are only valid for the files you supply.
 
 ## Scope
 
@@ -145,10 +145,34 @@ with the in-memory model on a fixed slice of the training data, and only then mo
 JSON (which holds the model file's SHA-256) is moved last, so an interrupted run leaves no completed
 artefact. No unit test trains a full-size model.
 
+## Model evaluation (Milestone 5)
+
+```bash
+python -m nids.evaluate                       # all four models, one pass over the saved test split
+python -m nids.evaluate --models random_forest svm
+```
+
+Prediction only: models are loaded after their file hash and hyperparameters are checked against the
+metadata, fitting is actively blocked during evaluation, and no setting or threshold is tuned on test
+results. ATTACK is the positive class. Reported: accuracy, precision, recall, F1, ROC-AUC,
+false-positive rate and confusion counts; ROC-AUC uses `predict_proba[ATTACK]` for Logistic
+Regression, Decision Tree and Random Forest and the `decision_function` score for the SVM (a signed
+distance, not a probability; `probability=True` is never enabled). Detection recall is also reported
+per original attack family, with the training/sample/test record counts and a 95% Wilson interval;
+families with fewer than 30 test records are flagged INSUFFICIENT.
+
+Results are compared with the figures claimed in the report (`config.REPORT_CLAIMS`, transcribed from
+its Table 5 and Figure 10). The claims only produce difference columns; they never influence a metric.
+A model whose evaluation fails is reported as FAILED (never skipped silently) and the exit code is 1.
+
+Outputs (git-ignored): `results/metrics/{evaluation_metrics.json,model_comparison.csv,family_recall.csv,
+report_comparison.csv}`, `results/logs/evaluation_report.txt`, and `results/figures/` (metric comparison,
+confusion matrix per model plus a combined one, ROC curves, per-family recall, measured-vs-report).
+
 ## Project layout
 
 ```
-src/nids/       config, data_loader (M2), preprocessing (M3), train (M4), evaluate, predict, utils
+src/nids/       config, data_loader (M2), preprocessing (M3), train (M4), evaluate (M5), predict, utils
 tests/          pytest suite (synthetic data only)
 data/           raw/ interim/ processed/   (contents not committed)
 models/         trained model artifacts     (not committed)

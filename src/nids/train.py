@@ -113,7 +113,6 @@ def _logistic_regression_kwargs(settings: dict) -> tuple[dict, str]:
 
 
 def build_classifier(name: str):
-    """The classifier with the report's settings (no tuning, class weights or resampling)."""
     _require_known(name)
     settings = dict(config.MODEL_SETTINGS[name])
     if name == "logistic_regression":

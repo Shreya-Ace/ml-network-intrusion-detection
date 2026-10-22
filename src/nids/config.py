@@ -107,7 +107,7 @@ LABEL_ALIASES: dict[str, tuple[str, ...]] = {
 # --- Reproducibility -------------------------------------------------------
 RANDOM_SEED: int = 42
 
-# --- Experiment design (REPORT CLAIMS: to be verified, not assumed) --------
+# --- Experiment design --------
 N_BENIGN_SAMPLES: int = 60_000
 N_ATTACK_SAMPLES: int = 40_000
 TEST_SIZE: float = 0.20  # 80:20 stratified split
@@ -122,11 +122,6 @@ MODEL_NAMES: tuple[str, ...] = ("logistic_regression", "decision_tree", "random_
 # Trained by default. The RBF SVM is expensive, so it is never trained unless requested.
 INITIAL_MODELS: tuple[str, ...] = ("logistic_regression", "decision_tree", "random_forest")
 
-# Classifier settings taken from the report (the INTENDED configuration). train.py maps them
-# to the installed scikit-learn's parameter names (e.g. 'penalty' is deprecated in 1.8+) and
-# records the settings actually used in each model's metadata.
-# random_state=42 is the project seed; the report itself only specifies it for Random Forest.
-# Note: it has no effect for Logistic Regression with 'lbfgs' or for SVC with probability=False.
 MODEL_SETTINGS: dict[str, dict] = {
     "logistic_regression": {"penalty": "l2", "C": 1.0, "solver": "lbfgs", "max_iter": 1000, "random_state": RANDOM_SEED},
     "decision_tree": {"criterion": "gini", "max_depth": 20, "random_state": RANDOM_SEED},
@@ -134,11 +129,6 @@ MODEL_SETTINGS: dict[str, dict] = {
     "svm": {"kernel": "rbf", "C": 1.0, "gamma": "scale", "probability": False, "random_state": RANDOM_SEED},
 }
 
-# --- Report claims (Milestone 5) ---------------------------------------------------------
-# Values TRANSCRIBED from the training report: Table 5 (performance comparison) and
-# Section 5.1 / Figure 10 (Random Forest confusion matrix). They are reference claims to
-# compare against, NOT results of this implementation, and are never used to compute or
-# adjust any metric. The report gives no ROC-AUC and no per-attack-family results.
 REPORT_CLAIMS: dict = {
     "source": "Industrial training report: Table 5; Section 5.1 and Figure 10 (Random Forest confusion matrix)",
     "note": "Transcribed claims, not results of this implementation. Percentages in the report have two decimals.",
